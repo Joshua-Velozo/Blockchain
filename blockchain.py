@@ -10,24 +10,25 @@ class Blockchain:
         self.create_block(proof=1, previous_hash="0000000000000000000") # Genesis block
 
     def hash(self, block):
-        #solution
-        # block['transactions'] = json.dumps(block['transactions'], sort_keys=True)
+        block_copy = json.loads(json.dumps(block))
         
+        if "hash" in block_copy:
+            del block_copy["hash"]
 
-        json_from_block = json.dumps(block, sort_keys=True)
-        print(json_from_block)
+        json_from_block = json.dumps(block_copy, sort_keys=True)
         encoded_block = json_from_block.encode()
         return hashlib.sha256(encoded_block).hexdigest()
 
 
     def create_block(self, proof, previous_hash):
         block = {
-            'index': len(self.chain) + 1,
+            'index': len(self.chain),
             'timestamp': time.time(),
             'transactions': self.current_transactions,
             'proof': proof,
             'previous_hash': previous_hash,
         }
+        block['hash'] = self.hash(block)
         self.current_transactions = []
         self.chain.append(block)
         return block
@@ -55,37 +56,34 @@ class Blockchain:
         for i in range(1, len(self.chain)):
             prev_block = self.chain[i - 1]
             curr_block = self.chain[i]
-            
-            # if is correctly connected
-            if curr_block["previous_hash"] != self.hash(prev_block):
-                print("1")
+
+            if curr_block["previous_hash"] != prev_block["hash"]:
+                print(f"Invalid previous_hash at block {curr_block['index']}")
                 return False
 
-            # if last proof is valid
+            if curr_block["hash"] != self.hash(curr_block):
+                print(f"Block {curr_block['index']} has been tampered with")
+                return False
+
             proof_valid = hashlib.sha256(str(curr_block["proof"]**2 - prev_block["proof"]**2).encode()).hexdigest()
             if proof_valid[:4] != "0000":
-                print("2")
+                print(f"Invalid proof at block {curr_block['index']}")
                 return False
             
-
-
         return True
 
 
 
 # blockchain = Blockchain()
-
+#
 # blockchain.new_transaction('Alice', 'Bob', 1)
 # blockchain.new_transaction('Bob', 'Charlie', 2)
 # blockchain.new_transaction('Charlie', 'Alice', 3)
-
+#
 # previous_block = blockchain.get_previous_block()
 # proof = blockchain.proof_of_work(previous_block['proof'])
 # block = blockchain.create_block(proof, blockchain.hash(previous_block))
-
-# # print(blockchain.chain)
-# blockchain.chain[1]['transactions'] = []
-# # print(blockchain.chain)
+#
 # print(blockchain.is_chain_valid())
 
 
