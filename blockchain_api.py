@@ -29,5 +29,19 @@ def mine():
     }
     return jsonify(response)
 
+
+
+@app.route('/transaction', methods = ['POST'])
+def add_transaction():
+    data = request.get_json()
+    blockchain.new_transaction(data['sender'], data['recipient'], data['amount'])
+    return "okay"
+
+@app.route('/chain')
+def get_chain():
+    blocks = blockchain.chain
+    return jsonify(blocks)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5555)

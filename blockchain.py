@@ -1,13 +1,35 @@
 import hashlib
 import json
 import time
+import os
+
+def load_json():
+    if os.path.exists("blockchain.json"):
+        with open("blockchain.json", "r", encoding = "utf-8") as f:
+            try:
+                return json.load(f)
+            except: 
+                return None
+    else:
+        return None
+    
+def save_json(data):
+    with open("blockchain.json", "w", encoding = "utf-8") as f:
+        json.dump(data, f, indent = 2)
+
 
 
 class Blockchain:
     def __init__(self):
-        self.chain = []
-        self.current_transactions = []
-        self.create_block(proof=1, previous_hash="0000000000000000000") # Genesis block
+        chain = load_json()
+        if not chain:
+            self.chain = []
+            self.current_transactions = []
+            self.create_block(proof=1, previous_hash="0000000000000000000") # Genesis block
+        else:
+            self.chain = chain
+
+
 
     def hash(self, block):
         block_copy = json.loads(json.dumps(block))
@@ -51,6 +73,7 @@ class Blockchain:
             if hash_operation[:4] == '0000':
                 return new_proof
             new_proof += 1
+        save_json(self.chain)
 
     def is_chain_valid(self):
         for i in range(1, len(self.chain)):
